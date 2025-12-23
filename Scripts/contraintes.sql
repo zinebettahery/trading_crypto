@@ -4,6 +4,7 @@ ADD CONSTRAINT chk_ordres_type
     CHECK (type_ordre IN ('BUY', 'SELL','fiftyfifty')),
 ADD CONSTRAINT chk_ordres_mode
     CHECK ("mode" IN ('MARKET', 'LIMIT')),
+    hhhejjdhhhdfjjfj
 ADD CONSTRAINT chk_ordres_quantite
     CHECK (quantite > 0),
 ADD CONSTRAINT chk_ordres_prix
