@@ -50,13 +50,13 @@ Les relations couvrent :
 - l’historisation et l’audit
 - la détection d’anomalies
 
-<img width="1833" height="781" alt="mcd_crypto" src="https://github.com/user-attachments/assets/7377dcab-9494-4d74-85b2-276d07c89aae" />
+<img width="1533" height="481" alt="mcd_crypto" src="https://github.com/user-attachments/assets/7377dcab-9494-4d74-85b2-276d07c89aae" />
 
 ### MPD – Modèle pysique de Données
 
 Nous avons travaillé avec DBSchema afin d’obtenir le MPD et de générer les scripts SQL de création des tables ainsi que les relations via les clés étrangères:
 
-<img width="612" height="467" alt="mpd_crypto" src="https://github.com/user-attachments/assets/bfa1adaa-da56-4bd4-8d11-67b525dad368" />
+<img width="1500" height="522" alt="mld" src="https://github.com/user-attachments/assets/87d4f5d9-fa56-4985-8a91-d60cb8ec2148" />
 
 
 ## 🛠️ Technologies utilisées
@@ -72,7 +72,7 @@ Nous avons travaillé avec DBSchema afin d’obtenir le MPD et de générer les 
 ### Contraintes métier (PK, FK, CHECK, UNIQUE)
 Afin de garantir la cohérence, la fiabilité et la sécurité des données, plusieurs contraintes ont été mises en place au niveau de la base de données.
 
-📌**Table ordres**
+**Table ordres**
 * Contraintes CHECK pour contrôler les valeurs possibles (BUY / SELL, MARKET / LIMIT, statuts).
 * Validation des règles métier :
     * La quantité doit être strictement positive.
@@ -80,34 +80,34 @@ Afin de garantir la cohérence, la fiabilité et la sécurité des données, plu
     * Un ordre MARKET ne doit pas avoir de prix.
 * Vérification de la cohérence entre le statut, le prix et la date d’exécution.
 
-📌**Table paire_trading**
+**Table paire_trading**
 * Champs obligatoires (NOT NULL) pour garantir l’existence des informations essentielles.
 * Interdiction d’une paire composée de la même cryptomonnaie (BTC/BTC).
 * Contrôle des statuts possibles (ACTIVE, INACTIVE, SUSPENDUE).
 * Interdiction des dates d’ouverture futures.
 
 
-📌 **Table detection_anomalie**
+**Table detection_anomalie**
 * Champs critiques obligatoires (type, utilisateur, date).
 * Types d’anomalies strictement définis (wash trading, spoofing, etc.).
 * Interdiction des dates futures.
 * Contrainte UNIQUE : un même utilisateur ne peut avoir qu’une seule anomalie du même type par jour.
 * Trigger de cohérence : vérifie que l’ordre associé appartient bien à l’utilisateur.
 
-📌 **Table detection_anomalie**
+**Table detection_anomalie**
 * Champs critiques obligatoires (type, utilisateur, date).
 * Types d’anomalies strictement définis (wash trading, spoofing, etc.).
 * Interdiction des dates futures.
 * Contrainte UNIQUE : un même utilisateur ne peut avoir qu’une seule anomalie du même type par jour.
 * Trigger de cohérence : vérifie que l’ordre associé appartient bien à l’utilisateur.
 
-📌 **Table utilisateurs**
+**Table utilisateurs**
 * Adresse email unique et format valide.
 * Longueur maximale des champs texte.
 * Statut contrôlé (ACTIF, INACTIF).
 * Date d’inscription valide (pas dans le futur).
 
-📌 **Table statistique_marche**
+**Table statistique_marche**
 * Indicateurs autorisés (VWAP, RSI, VOLATILITE).
 * Contraintes spécifiques par indicateur :
     * RSI entre 0 et 100
@@ -115,91 +115,34 @@ Afin de garantir la cohérence, la fiabilité et la sécurité des données, plu
     * Date de mise à jour valide.
 * Unicité par paire, indicateur et période.
 
-📌 **Table prix_marche**
+**Table prix_marche**
 * Prix strictement positif.
 * Volume non négatif.
 * Date valide.
 * Un seul prix par paire et par date.
 
-📌 **Table trades**
+**Table trades**
 * Prix et quantité strictement positifs.
 * Date d’exécution non future.
 
-📌 **Table audit_trail**
+**Table audit_trail**
 * Actions limitées à INSERT, UPDATE, DELETE.
 * Date d’audit valide.
 
-📌 **Table portefeuilles**
+**Table portefeuilles**
 * Soldes toujours positifs.
 * Solde bloqué ≤ solde total.
 * Valeurs par défaut cohérentes.
 * Un seul portefeuille par utilisateur et cryptomonnaie.
 
-📌 **Table cryptomonnaies**
+**Table cryptomonnaies**
 * Nom et symbole obligatoires.
 * Symbole unique.
 * Statut contrôlé.
 * Date de création valide.
 
-### Données de test
+### Insertion automatique des données
 
-Les données de test sont générées automatiquement à l’aide de scripts SQL (`generate_series`, `random()`) afin de simuler des volumes réalistes et permettre l’analyse des performances PostgreSQL.
+Un script d’insertion automatique a été mis en place pour peupler la base de données avec des données de test réalistes.
+Il permet de simuler le fonctionnement d’une plateforme de trading crypto tout en respectant l’ensemble des contraintes d’intégrité, des clés étrangères et des règles métier.
 
-
-### 🔹 Optimisation
-- Index B-tree, partial index, covering index
-- Partitionnement des tables volumineuses
-- Extended statistics (colonnes corrélées)
-- Optimisation du `fillfactor`
-- Réglage du `work_mem`
-
-### 🔹 Analyse avancée
-- Window Functions (AVG, SUM, STDDEV, RANK…)
-- LATERAL JOIN
-- DISTINCT ON
-- CTE récursives
-- Fonctions métier en PL/pgSQL
-
-### 🔹 Performance
-- Vues et vues matérialisées
-- Pré-calcul des indicateurs de marché
-- Gestion de la concurrence avec Advisory Locks
-- Transactions isolées en SERIALIZABLE
-
----
-
-## 📊 Monitoring et diagnostic
-
-- `pg_stat_statements`
-- `pg_stat_io`
-- `auto_explain`
-- Analyse des plans `EXPLAIN ANALYZE`
-- Suivi des temp file spills
-- Surveillance de l’autovacuum
-
-📄 Les détails sont disponibles dans :
-- `MONITORING.md`
-- `PERFORMANCE_TUNING.md`
-
----
-
-## 🧪 Tests et validation
-
-### ✔ Tests fonctionnels
-- Création et exécution des ordres
-- Mise à jour des portefeuilles
-- Calcul des indicateurs de marché
-- Détection d’anomalies
-
-### ✔ Tests de performance
-- Temps de réponse
-- TPS (Transactions Per Second)
-- Comparaison avant / après optimisation
-
-### ✔ Tests de concurrence
-- Ordres simultanés
-- Deadlocks
-- Advisory Locks
-- Isolation SERIALIZABLE
-
----
