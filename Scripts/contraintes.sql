@@ -20,7 +20,7 @@ ADD CONSTRAINT chk_ordres_execute_prix
     CHECK (
         statut <> 'EXECUTED'
         OR prix IS NOT NULL
-    );
+    ),
 ADD CONSTRAINT chk_ordres_execute_date
     CHECK (
         statut <> 'EXECUTED'
@@ -117,7 +117,7 @@ ADD CONSTRAINT uq_utilisateurs_email
 ADD CONSTRAINT chk_utilisateurs_nom_len
     CHECK (length(nom) <= 50),
 
-ADD CONSTRAINT chk_utilisateurs_nom_len
+ADD CONSTRAINT chk_utilisateurs_prenom_len
     CHECK (length(prenom) <= 50),
 
 ADD CONSTRAINT chk_utilisateurs_email_len
@@ -130,13 +130,9 @@ ADD CONSTRAINT chk_utilisateurs_statut
     CHECK (statut IN ('ACTIF', 'INACTIF')),
 
 ADD CONSTRAINT chk_utilisateurs_date
-    CHECK (date_inscription <= CURRENT_DATE),
+    CHECK (date_inscription <= CURRENT_DATE);
 
-ADD CONSTRAINT chk_utilisateurs_portefeuille_actif
-    CHECK (
-        statut <> 'ACTIF'
-        OR portefeuille_id IS NOT NULL
-    );
+
 -- ==================================
 -- table statistique_marche:
 -- ==================================
@@ -170,7 +166,7 @@ ADD CONSTRAINT chk_stat_marche_date
     CHECK (date_maj <= now()),
 
 ADD CONSTRAINT uq_stat_marche_unique
-    UNIQUE (paire_id, indicateur, periode);
+    UNIQUE (id_paire, indicateur, periode);
 
 -- ==================================
 -- table prix_marche:
@@ -187,19 +183,20 @@ ADD CONSTRAINT chk_prix_marche_date
     CHECK (date_maj <= now()),
 
 ADD CONSTRAINT uq_prix_marche_unique
-    UNIQUE (paire_id, date_maj);
+    UNIQUE (id_paire, date_maj);
 
 -- ================================
 -- LA TABLE trades
 -- ================================
 
 -- Le prix d’un trade doit être strictement positif
+Alter Table trades
 ADD CONSTRAINT chk_trades_prix
-CHECK (prix > 0);
+CHECK (prix > 0),
 
 -- La quantité échangée doit être strictement positive
 ADD CONSTRAINT chk_trades_quantite
-CHECK (quantite > 0);
+CHECK (quantite > 0),
 
 -- La date d’exécution du trade ne doit pas être dans le futur
 ADD CONSTRAINT chk_trades_date
@@ -213,7 +210,7 @@ CHECK (date_execution <= CURRENT_TIMESTAMP);
 -- L’action auditée doit être INSERT, UPDATE ou DELETE
 ALTER TABLE audit_trail
 ADD CONSTRAINT chk_audit_action
-CHECK (action IN ('INSERT', 'UPDATE', 'DELETE'));
+CHECK (action IN ('INSERT', 'UPDATE', 'DELETE')),
 
 -- La date de l’action auditée ne doit pas être dans le futur
 ADD CONSTRAINT chk_audit_date
