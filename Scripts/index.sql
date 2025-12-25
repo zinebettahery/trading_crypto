@@ -39,9 +39,4 @@ CREATE INDEX idx_prix_marche_paire_date ON prix_marche (id_paire, date_maj DESC)
 -- index sur la date 
 CREATE INDEX idx_prix_marche_date ON prix_marche (date_maj);
 
--- Index sur les prix récents uniquement
-CREATE INDEX idx_prix_marche_recent ON prix_marche (id_paire, date_maj DESC)
-WHERE
-    date_maj >= CURRENT_DATE - INTERVAL '7 days';
-
 = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =
