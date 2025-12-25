@@ -8,7 +8,6 @@ Ce document décrit les actions de **tuning et d’optimisation PostgreSQL** mis
 - la gestion de la concurrence
 - la scalabilité de la base de données CryptoTrade
 
----
 
 ## 🧱 Problèmes de performance identifiés
 
@@ -20,40 +19,112 @@ Ce document décrit les actions de **tuning et d’optimisation PostgreSQL** mis
 - Vacuum lag sur tables fortement écrites
 - HOT updates peu efficaces
 
----
 
 ## 📌 Indexation
 
-### Index B-tree
-Utilisés pour les recherches fréquentes par identifiant et filtres simples.
+### 📌 `detection_anomalie`
+- Index sur `id_utilisateur`, `id_order` et `date_detection`
+- Index covering pour récupérer les anomalies d’un utilisateur sans accès à la table
 
-Exemples :
-- `utilisateur_id` dans ORDRE
-- `paire_id` dans ORDRE, PRIX_MARCHE, STATISTIQUE_MARCHE
+**Bénéfice :** accélération des analyses de fraude et du monitoring
 
----
 
-### Partial Index
-Index créés uniquement sur les lignes utiles.
+### 📌 `paire_trading`
+- Index sur `statut`, `crypto_base`, `crypto_contre` et `date_ouverture`
+- Index partiel limité aux paires actives (`statut = 'ACTIVE'`)
+- Index covering pour les consultations fréquentes par cryptomonnaie
 
-Exemples :
-- Ordres avec statut = 'EN_ATTENTE'
-- Trades récents
+**Bénéfice :** affichage rapide des paires disponibles et réduction de la charge mémoire
 
-Objectif :
-- Réduire la taille des index
-- Améliorer la vitesse de lecture
 
----
+### 📌 `statistique_marche`
+- Index sur `id_paire`, `indicateur` et `periode`
+- Index covering pour récupérer directement `valeur` et `date_maj`
+- Index partiel ciblé sur les indicateurs clés (VWAP, RSI, VOLATILITE)
 
-### Covering Index (Index-only scan)
-Ajout de colonnes incluses pour éviter la lecture de la table.
+**Bénéfice :** meilleures performances pour les dashboards et analyses techniques
 
-Objectif :
-- Réduire les accès disque
-- Accélérer les requêtes analytiques
 
----
+### 📌 `cryptomonnaies`
+- Index **UNIQUE** sur `symbole`
+- Index sur `statut` et `date_creation`
+
+**Bénéfice :** intégrité des données et accès rapide aux cryptomonnaies actives
+
+
+### 📌 `portefeuilles`
+- Index unique composite `(id_utilisateur, id_crypto)`
+- Index partiel sur les soldes positifs uniquement
+- Index covering pour consultation rapide des soldes
+
+**Bénéfice :** cohérence financière et requêtes rapides
+
+
+### 📌 `prix_marche`
+- Index composite `(id_paire, date_maj DESC)`
+- Index sur la date de mise à jour
+
+**Bénéfice :** récupération instantanée des prix récents
+
+
+### 📌 `ordres` — Optimisation critique
+
+#### Carnet d’ordres temps réel
+- Index partiels distincts pour les ordres **BUY** et **SELL**
+- Tri optimisé par prix (DESC pour BUY, ASC pour SELL)
+
+**Bénéfice :** affichage instantané du carnet d’ordres
+
+
+#### Ordres par utilisateur
+- Index dédiés à la consultation des ordres d’un utilisateur
+- Index covering pour l’historique complet
+
+**Bénéfice :** navigation fluide et rapide
+
+
+#### Moteur de matching
+- Index ciblé sur les ordres **LIMIT** ouverts
+
+**Bénéfice :** matching plus rapide et réduction de la latence
+
+#### Analyses & monitoring
+- Index par paire et par statut
+- Index dédié à la détection de **wash trading**
+- Index pour l’archivage des ordres exécutés
+
+**Bénéfice :** analyses performantes et surveillance efficace
+
+#### Extended statistics
+- Statistiques multi-colonnes pour améliorer les estimations du planner PostgreSQL
+
+**Bénéfice :** plans d’exécution plus efficaces pour les requêtes complexes
+
+
+
+### 📌 Utilisateurs (`utilisateurs`)
+- Index **UNIQUE** fonctionnel sur email (insensible à la casse)
+- Index partiel sur les utilisateurs actifs
+- Index **GIN full-text** pour la recherche par nom, prénom et email
+- Index covering pour le profil utilisateur
+
+**Bénéfice :** authentification rapide et recherche performante
+
+
+
+### 📌 Trades (`trades`)
+- Index sur `id_paire`, `date_execution` et `id_order`
+- Index covering pour les analyses de volume et de prix
+
+**Bénéfice :** statistiques de trading optimisées
+
+
+### 📌 Audit (`audit_trail`)
+- Index sur utilisateur, date, ordre et trade
+- Index **GIN (pg_trgm)** pour la recherche textuelle dans les logs
+
+**Bénéfice :** traçabilité rapide et audit efficace
+
 
 ## 🧩 Partitionnement
 
