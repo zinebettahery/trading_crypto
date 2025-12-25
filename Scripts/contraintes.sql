@@ -98,4 +98,3 @@ ADD CONSTRAINT chk_prix_marche_date
 
 ADD CONSTRAINT uq_prix_marche_unique
     UNIQUE (paire_id, date_maj);
-
