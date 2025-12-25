@@ -1,10 +1,8 @@
-# crypto
-
 # 🚀 CryptoTrade – Optimisation et Analyse Avancée PostgreSQL
 
 ## 📌 Présentation du projet
 
-**CryptoTrade** est un projet académique visant à concevoir, modéliser et optimiser une base de données **PostgreSQL** pour une plateforme de trading de cryptomonnaies en temps réel.
+**CryptoTrade** est un projet visant à concevoir, modéliser et optimiser une base de données **PostgreSQL** pour une plateforme de trading de cryptomonnaies en temps réel.
 
 La plateforme doit gérer :
 - des **millions d’ordres par jour**
@@ -15,7 +13,6 @@ La plateforme doit gérer :
 
 Ce projet met l’accent sur **l’optimisation PostgreSQL** plutôt que sur la taille du schéma.
 
----
 
 ## 🎯 Objectifs du projet
 
@@ -28,11 +25,10 @@ Ce projet met l’accent sur **l’optimisation PostgreSQL** plutôt que sur la 
 - Mettre en place un **monitoring avancé**
 - Tester et valider les performances
 
----
 
 ## 🧱 Modélisation de la base
 
-### 📐 MCD – Modèle Conceptuel de Données
+### MCD – Modèle Conceptuel de Données
 
 Le MCD comprend les entités principales suivantes :
 
@@ -54,27 +50,96 @@ Les relations couvrent :
 - l’historisation et l’audit
 - la détection d’anomalies
 
-📁 Les diagrammes MCD / MLD / MRD sont disponibles dans le dossier `docs/`.
+<img width="1833" height="781" alt="mcd_crypto" src="https://github.com/user-attachments/assets/7377dcab-9494-4d74-85b2-276d07c89aae" />
 
----
+### MPD – Modèle pysique de Données
+
+Nous avons travaillé avec DBSchema afin d’obtenir le MPD et de générer les scripts SQL de création des tables ainsi que les relations via les clés étrangères:
+
+<img width="612" height="467" alt="mpd_crypto" src="https://github.com/user-attachments/assets/bfa1adaa-da56-4bd4-8d11-67b525dad368" />
+
 
 ## 🛠️ Technologies utilisées
 
-- **PostgreSQL**
 - **PL/pgSQL**
 - **pgAdmin**
 - **DbSchema** (modélisation)
 - **Git / GitHub**
 - **Trello** (suivi des tâches)
 
----
-
 ## ⚙️ Fonctionnalités techniques implémentées
 
-### 🔹 Base de données
-- Contraintes métier (PK, FK, CHECK, UNIQUE)
-- Normalisation stricte (1FN → 3FN)
-- Types PostgreSQL adaptés
+### Contraintes métier (PK, FK, CHECK, UNIQUE)
+Afin de garantir la cohérence, la fiabilité et la sécurité des données, plusieurs contraintes ont été mises en place au niveau de la base de données.
+
+📌**Table ordres**
+* Contraintes CHECK pour contrôler les valeurs possibles (BUY / SELL, MARKET / LIMIT, statuts).
+* Validation des règles métier :
+    * La quantité doit être strictement positive.
+    * Un ordre LIMIT doit obligatoirement avoir un prix positif.
+    * Un ordre MARKET ne doit pas avoir de prix.
+* Vérification de la cohérence entre le statut, le prix et la date d’exécution.
+
+📌**Table paire_trading**
+* Champs obligatoires (NOT NULL) pour garantir l’existence des informations essentielles.
+* Interdiction d’une paire composée de la même cryptomonnaie (BTC/BTC).
+* Contrôle des statuts possibles (ACTIVE, INACTIVE, SUSPENDUE).
+* Interdiction des dates d’ouverture futures.
+
+
+📌 **Table detection_anomalie**
+* Champs critiques obligatoires (type, utilisateur, date).
+* Types d’anomalies strictement définis (wash trading, spoofing, etc.).
+* Interdiction des dates futures.
+* Contrainte UNIQUE : un même utilisateur ne peut avoir qu’une seule anomalie du même type par jour.
+* Trigger de cohérence : vérifie que l’ordre associé appartient bien à l’utilisateur.
+
+📌 **Table detection_anomalie**
+* Champs critiques obligatoires (type, utilisateur, date).
+* Types d’anomalies strictement définis (wash trading, spoofing, etc.).
+* Interdiction des dates futures.
+* Contrainte UNIQUE : un même utilisateur ne peut avoir qu’une seule anomalie du même type par jour.
+* Trigger de cohérence : vérifie que l’ordre associé appartient bien à l’utilisateur.
+
+📌 **Table utilisateurs**
+* Adresse email unique et format valide.
+* Longueur maximale des champs texte.
+* Statut contrôlé (ACTIF, INACTIF).
+* Date d’inscription valide (pas dans le futur).
+
+📌 **Table statistique_marche**
+* Indicateurs autorisés (VWAP, RSI, VOLATILITE).
+* Contraintes spécifiques par indicateur :
+    * RSI entre 0 et 100
+    * VWAP strictement positif
+    * Date de mise à jour valide.
+* Unicité par paire, indicateur et période.
+
+📌 **Table prix_marche**
+* Prix strictement positif.
+* Volume non négatif.
+* Date valide.
+* Un seul prix par paire et par date.
+
+📌 **Table trades**
+* Prix et quantité strictement positifs.
+* Date d’exécution non future.
+
+📌 **Table audit_trail**
+* Actions limitées à INSERT, UPDATE, DELETE.
+* Date d’audit valide.
+
+📌 **Table portefeuilles**
+* Soldes toujours positifs.
+* Solde bloqué ≤ solde total.
+* Valeurs par défaut cohérentes.
+* Un seul portefeuille par utilisateur et cryptomonnaie.
+
+📌 **Table cryptomonnaies**
+* Nom et symbole obligatoires.
+* Symbole unique.
+* Statut contrôlé.
+* Date de création valide.
 
 ### Données de test
 
