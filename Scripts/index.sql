@@ -23,3 +23,19 @@ ON paire_trading(crypto_base) INCLUDE(statut,crypto_contre);
 CREATE INDEX idx_paire_trading_ouvertes 
 ON paire_trading(date_ouverture) 
 WHERE statut = 'ACTIVE';
+
+
+-- B-tree recherches par paire,indicateur,période
+CREATE INDEX idx_stat_marche_paire ON statistique_marche(id_paire);
+CREATE INDEX idx_stat_marche_indicateur ON statistique_marche(indicateur);
+CREATE INDEX idx_stat_marche_periode ON statistique_marche(periode);
+
+-- Covering Index si tu récupères souvent valeur et date_maj pour une paire
+CREATE INDEX idx_stat_marche_indicateur_covering 
+ON statistique_marche(indicateur) INCLUDE(valeur, date_maj, id_paire);
+
+
+-- Index partiel pour les indicateurs spécifiques
+CREATE INDEX idx_stat_marche_indicateurs
+ON statistique_marche(valeur)
+WHERE indicateur IN ('VWAP', 'RSI', 'VOLATILITE');
