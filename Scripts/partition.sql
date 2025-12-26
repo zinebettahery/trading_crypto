@@ -18,7 +18,7 @@ CREATE TABLE audit_trail (
     id_utilisateur  integer,
     id_order        integer,
     id_trade        integer,
-    CONSTRAINT pk_audit_trail PRIMARY KEY (id_audit, action)
+    CONSTRAINT audit_trail_pk PRIMARY KEY (id_audit, action)
 ) PARTITION BY LIST (action);
 
 
@@ -27,17 +27,17 @@ CREATE TABLE audit_trail (
 ------------------------------------------------------------
 
 -- Partition INSERT
-CREATE TABLE audit_trail_insert
+CREATE TABLE insert_audit_trail
 PARTITION OF audit_trail
 FOR VALUES IN ('INSERT');
 
 -- Partition UPDATE
-CREATE TABLE audit_trail_update
+CREATE TABLE update_audit_trail
 PARTITION OF audit_trail
 FOR VALUES IN ('UPDATE');
 
 -- Partition DELETE
-CREATE TABLE audit_trail_delete
+CREATE TABLE delete_audit_trail
 PARTITION OF audit_trail
 FOR VALUES IN ('DELETE');
 
@@ -65,19 +65,19 @@ REFERENCES trades(id_trade);
 -- 5. INDEX
 ------------------------------------------------------------
 -- Index B-tree sur id_order et id_trade
-CREATE INDEX idx_audit_order
+CREATE INDEX audit_order_idx
 ON audit_trail(id_order);
 
-CREATE INDEX idx_audit_trade
+CREATE INDEX audit_trade_idx
 ON audit_trail(id_trade);
 
 -- 3. Recherche par date
-CREATE INDEX idx_audit_date
+CREATE INDEX audit_date_idx
 ON audit_trail(date_action DESC)
 INCLUDE (table_cible, action, id_utilisateur);
 
 -- 2. Recherche par utilisateur
-CREATE INDEX idx_audit_utilisateur
+CREATE INDEX audit_utilisateur_idx
 ON audit_trail(id_utilisateur, date_action DESC)
 INCLUDE (table_cible, action, id_order, id_trade);
 
@@ -85,7 +85,7 @@ INCLUDE (table_cible, action, id_order, id_trade);
 -- Index GIN sur details : Pour les recherches texte dans la colonne details.
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
-CREATE INDEX idx_audit_details_gin
+CREATE INDEX audit_details_gin_idx
 ON audit_trail
 USING GIN (details gin_trgm_ops);
 
