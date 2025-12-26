@@ -169,11 +169,46 @@ Utilisé pour :
 ---
 
 ### DISTINCT ON
-Utilisé pour :
-- Récupérer le dernier prix
-- Obtenir le dernier état d’un ordre
+#### ➡️ Problème à résoudre :
+Imaginons que tu veux construire un dashboard ou faire des calculs analytiques :
+* Chaque ordre peut avoir plusieurs trades → plusieurs prix et statuts successifs.
+* Sans optimisation, il faudrait parcourir toute la table trades ou prix_marche pour trouver le plus récent par ordre ou par paire.
+* Les requêtes deviennent lentes si le volume est important.
 
----
+
+#### ➡️ Solution : DISTINCT ON
+DISTINCT ON est une fonctionnalité PostgreSQL qui permet de :
+* Grouper les données par une clé (id_order ou id_paire)
+* Choisir la première ligne selon un ordre défini (ORDER BY date DESC)
+
+**Pourquoi avoir choisi MATERIALIZED VIEW au lieu de VIEW:**
+
+1. Performance élevée
+
+* Une VIEW recalculerait le DISTINCT ON à chaque requête
+* Une MATERIALIZED VIEW pré-calcule et stocke le dernier état/prix
+
+2. Réduction de la charge sur la table ordres
+
+* Moins de scans
+* Moins de tri (ORDER BY)
+* Moins de contention en environnement multi-utilisateurs
+
+3. Indexation possible
+
+Contrairement à une VIEW, une MATERIALIZED VIEW peut être indexée
+
+Et pour garder les données à jour sans bloquer les lectures :
+
+```sql
+-- Rafraîchissement du dernier état des ordres
+REFRESH MATERIALIZED VIEW CONCURRENTLY mv_last_order_state;
+
+-- Rafraîchissement du dernier prix par paire
+REFRESH MATERIALIZED VIEW CONCURRENTLY mv_last_price_pair;
+```
+
+CONCURRENTLY permet aux requêtes de continuer à lire la vue pendant le rafraîchissement.
 
 ## 📸 Vues et vues matérialisées
 
