@@ -52,7 +52,7 @@ Les relations couvrent :
 
 <img width="1533" height="481" alt="mcd_crypto" src="https://github.com/user-attachments/assets/7377dcab-9494-4d74-85b2-276d07c89aae" />
 
-### MPD – Modèle pysique de Données
+### MRD/MLD – Modèle relationnel de Données
 
 Nous avons travaillé avec DBSchema afin d’obtenir le MPD et de générer les scripts SQL de création des tables ainsi que les relations via les clés étrangères:
 

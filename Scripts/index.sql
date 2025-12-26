@@ -1,3 +1,5 @@
+-- table detection_anomalie
+-- ==================================
 -- Index B-tree classique pour les recherches fréquentes sur id_order ou id_utilisateur ou date_detection
 CREATE INDEX idx_detection_anomalie_utilisateur ON detection_anomalie(id_utilisateur);
 CREATE INDEX idx_detection_anomalie_order ON detection_anomalie(id_order);
@@ -9,6 +11,8 @@ CREATE INDEX idx_detection_anomalie_date ON detection_anomalie(date_detection);
 CREATE INDEX idx_detection_anomalie_utilisateur_covering 
 ON detection_anomalie(id_utilisateur) INCLUDE(date_detection, commentaire);
 
+-- table paire_trading
+-- ==================================
 -- B-tree pour les recherches par statut, date_ouverture ou crypto
 CREATE INDEX idx_paire_trading_statut ON paire_trading(statut);
 CREATE INDEX idx_paire_trading_date ON paire_trading(date_ouverture);
@@ -23,6 +27,10 @@ ON paire_trading(crypto_base) INCLUDE(statut,crypto_contre);
 CREATE INDEX idx_paire_trading_ouvertes 
 ON paire_trading(date_ouverture) 
 WHERE statut = 'ACTIVE';
+
+--Optimise les requêtes pour obtenir le dernier prix par paire
+CREATE INDEX idx_prix_marche_last_price
+ON prix_marche(id_paire, date_maj DESC);
 
 
 -- B-tree recherches par paire,indicateur,période
@@ -130,6 +138,13 @@ WHERE statut = 'OPEN' AND type_ordre = 'SELL';
 
 COMMENT ON INDEX idx_ordres_carnet_sell IS
 'Carnet d’ordres SELL actifs - affichage temps réel';
+
+--Optimise le ORDER BY utilisé par DISTINCT ON
+CREATE INDEX idx_ordres_last_state
+ON ordres(id_order, date_creation DESC);
+
+COMMENT ON INDEX idx_ordres_last_state IS
+'Optimise le ORDER BY pour obtenir le dernier état d’un ordre';
 
 -- ============================================================================
 -- 2. ORDRES PAR UTILISATEUR
