@@ -16,11 +16,6 @@ ADD CONSTRAINT chk_ordres_prix_mode
     ),
 ADD CONSTRAINT chk_ordres_statut
     CHECK (statut IN ('OPEN', 'EXECUTED', 'CANCELLED')),
-ADD CONSTRAINT chk_ordres_execute_prix
-    CHECK (
-        statut <> 'EXECUTED'
-        OR prix IS NOT NULL
-    ),
 ADD CONSTRAINT chk_ordres_execute_date
     CHECK (
         statut <> 'EXECUTED'
