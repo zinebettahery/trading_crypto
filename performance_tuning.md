@@ -166,7 +166,37 @@ Utilisé pour :
 - Calculs statistiques par utilisateur
 - Agrégations par paire de trading
 
----
+#### Différence entre JOIN classique et JOIN LATERAL
+**JOIN classique (sans LATERAL)**
+* Sert à relier deux tables indépendantes
+* La condition de liaison est définie dans ON
+* La sous-requête est exécutée **UNE SEULE FOIS** et son résultat (1 ligne) est ensuite attaché à tous les lignes de la table principale
+```sql
+SELECT
+    u.id_utilisateur,
+    o.id_order,
+    o.date_creation
+FROM utilisateurs u
+LEFT JOIN (
+    SELECT id_order, date_creation
+    FROM ordres
+    ORDER BY date_creation DESC
+    LIMIT 1
+) o ON true;
+```
+* Ne permet pas à une sous-requête d’utiliser les colonnes de la table principale
+* Adapté aux relations simples (clé étrangère, égalité)
+
+👉 Exemple d’usage : relier utilisateurs et ordres
+
+**JOIN LATERAL**
+* Permet de joindre une sous-requête dépendante de la ligne courante
+* La sous-requête est réexécutée pour chaque ligne
+* La logique de filtrage est dans la sous-requête
+* ON true signifie que le résultat de la sous-requête est simplement rattaché
+* Idéal pour statistiques personnalisées et données temps réel
+
+👉 Exemple d’usage : dernier ordre par utilisateur, dernier prix par paire
 
 ### DISTINCT ON
 #### ➡️ Problème à résoudre :
