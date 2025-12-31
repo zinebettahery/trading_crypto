@@ -354,8 +354,52 @@ ou globalement dans postgresql.conf.
 ---
 
 ### Fillfactor
-- Ajusté sur les tables fortement mises à jour (ORDRE)
-- Amélioration des HOT updates
+
+Une **page disque**, c’est :
+un petit bloc de données que PostgreSQL utilise pour lire et écrire.
+
+PostgreSQL utilise des pages parce que :
+* lire 1 ligne à la fois serait trop lent.
+* le disque travaille mieux par blocs.
+
+Quand **work_mem** est trop petit :
+* PostgreSQL ne peut pas garder les pages en RAM.
+* il écrit des pages temporaires sur le disque.
+
+Contrairement à ce qu’on croit, PostgreSQL ne modifie pas la ligne directement:
+* Ancienne ligne → marquée comme obsolète
+* Nouvelle ligne → écrite ailleurs
+👉 pour permettre à d’autres transactions de continuer à lire l’ancienne version (MVCC).
+
+PostgreSQL écrit la nouvelle ligne dans la même page disque et HOT UPDATE (Mise à jour faite sans toucher aux index) sera possible, **SI il reste de la place**.
+
+**fillfactor = 100 %** veut dire :
+
+PostgreSQL remplit la page disque au maximum lors des INSERT.
+
+Le problème quand la page est à 100% pleine, quand tu fais un UPDATE il n’y a PLUS DE PLACE pour la nouvelle version.
+
+PostgreSQL est obligé de :
+* créer une nouvelle page disque
+* écrire la nouvelle ligne dedans
+
+Les index doivent être mis à jour :
+
+Avant :
+* L’index pointait vers page A
+Après :
+* La ligne est maintenant dans page B
+
+👉 PostgreSQL doit modifier tous les index
+
+Plus de travail pour VACUUM :
+* Anciennes lignes mortes partout
+* VACUUM doit nettoyer plus de pages
+* VACUUM en retard = bloat
+
+```sql
+ALTER TABLE ordres SET (fillfactor = 70);
+```
 
 ---
 
