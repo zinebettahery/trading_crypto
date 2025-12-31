@@ -151,13 +151,22 @@ Les insertions massives de données sont volontairement réalisées sans trigger
 ## 🧮 Optimisation des requêtes analytiques
 
 ### Window Functions
-Utilisées pour :
-- Moyennes mobiles
-- Volatilité
-- Classements
 
-Avantage :
-- Calculs puissants sans sous-requêtes complexes
+Les window functions permettent de faire des calculs analytiques avancés (moyennes mobiles, VWAP, volatilité, variations de prix, classements) directement sur les données de trading, sans perdre le détail ligne par ligne, ce qui est essentiel pour une plateforme de trading en temps réel.
+👉 Contrairement à GROUP BY,
+
+✔️ on garde toutes les lignes
+
+✔️ on ajoute des valeurs calculées par-dessus
+
+
+Utilisées pour le calcul de:
+- Une moyenne mobile afin de suivre l’évolution du prix et d’identifier les tendances du marché sans regrouper les données.
+- Le VWAP afin de fournir un indicateur de prix pondéré par le volume, mis à jour trade par trade en quasi temps réel.
+- Variation de prix entre deux trades successifs qui sera utile pour : détection de volatilité, alertes, anomalies de marché.
+- Volatilité sur les dernières 24 heures afin de mesurer dynamiquement le risque associé à chaque paire de trading (plus elle est élevée → marché instable).
+- Les prix minimum et maximum afin de suivre l’amplitude des variations sur une période glissante de 24 heures.
+- Classement des paires (ranking) pour identifier les paires les plus actives, les paires les plus performantes et leur position par rapport aux autres.
 
 ---
 
@@ -198,6 +207,7 @@ LEFT JOIN (
 
 👉 Exemple d’usage : dernier ordre par utilisateur, dernier prix par paire
 
+---
 ### DISTINCT ON
 #### ➡️ Problème à résoudre :
 Imaginons que tu veux construire un dashboard ou faire des calculs analytiques :
