@@ -250,6 +250,34 @@ REFRESH MATERIALIZED VIEW CONCURRENTLY mv_last_price_pair;
 
 CONCURRENTLY permet aux requêtes de continuer à lire la vue pendant le rafraîchissement.
 
+---
+
+### Recursive CTE
+
+Un CTE récursif permet de suivre une chaîne d’actions liées entre elles, afin de détecter des comportements répétés ou suspects.
+Dans un CTE récursif, nous avons 2 parties :
+
+1️⃣ Cas de base : la première ligne ou les premiers événements
+2️⃣ Partie récursive : les lignes “suivantes” reliées à la première
+
+```sql
+WITH RECURSIVE wash_chain AS (
+    SELECT ... -- point de départ
+    UNION ALL
+    SELECT ... -- étape récursive
+)
+SELECT * FROM wash_chain;
+```
+**UNION ALL** = mets tout ensemble, ne supprime rien, il est utile dans les CTE récursifs pour suivre toutes les suites d’événements sans en perdre une seule.
+
+Pour remplir la table `detection_anomalie`, on peut détecter:
+
+* WASH TRADING : Même utilisateur qui achète et vend la même crypto, même prix, même quantité, très rapidement.
+* SPOOFING : Créer de gros ordres pour tromper le marché puis les annuler.
+* PUMP AND DUMP : Hausse artificielle rapide puis vente massive.
+* FRONT RUNNING : Un utilisateur trade juste avant un gros ordre.
+
+
 ## 📸 Vues et vues matérialisées
 
 ### Vues simples
