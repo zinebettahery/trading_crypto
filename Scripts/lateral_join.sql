@@ -1,3 +1,4 @@
+-- Indicateurs avancés par paire (VWAP, volatilité, RSI)
 SELECT
     p.id_paire,
     s.vwap_30j,
@@ -11,7 +12,7 @@ JOIN LATERAL (
         calcul_rsi(p.id_paire) AS rsi
 ) s ON true;
 
-
+-- Statistiques par utilisateur (nombre d’ordres, volume échangé)
 SELECT
     u.id_utilisateur,
     u.nom,
@@ -29,7 +30,7 @@ JOIN LATERAL (
 
 
 
-
+-- 
 SELECT
     p.id_paire,
     last_stat.indicateur,
