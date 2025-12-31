@@ -325,8 +325,31 @@ Utilisée pour :
 ## 🧠 Mémoire et stockage
 
 ### work_mem
-- Augmenté pour les sessions analytiques
-- Réduction des temp file spills
+
+C'est la mémoire utilisée par requête pour :
+* ORDER BY
+* GROUP BY
+* JOIN
+* DISTINCT
+
+**Problème : temp file spill**
+
+Quand work_mem est trop petit :
+* PostgreSQL manque de mémoire
+* Il écrit les données intermédiaires sur le disque
+* ça crée des fichiers temporaires (**temp file**)
+
+👉 requêtes beaucoup plus lentes
+
+**Pourquoi c’est mauvais ?**
+* le disque est beaucoup plus lent que la RAM
+* surtout critique pour : calculs de prix - volumes - indicateurs financiers
+
+**Solution : augmenter work_mem**
+```sql
+SET work_mem = '64MB';
+```
+ou globalement dans postgresql.conf.
 
 ---
 
