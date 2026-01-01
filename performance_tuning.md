@@ -304,7 +304,7 @@ Quand work_mem est trop petit :
 ```sql
 SET work_mem = '64MB';
 ```
-ou globalement dans "C:/Program Files/PostgreSQL/17/data/postgresql.conf".
+ou globalement dans "postgresql.conf".
 
 ---
 
@@ -362,7 +362,7 @@ ALTER TABLE ordres SET (fillfactor = 70);
 
 ### pg_stat_statements
 
-pg_stat_statements est une extension PostgreSQL qui permet de savoir:
+pg_stat_statements est une **extension PostgreSQL** qui permet de savoir:
 * quelles requêtes sont les plus lentes
 * lesquelles s’exécutent le plus souvent
 * lesquelles consomment le plus de CPU
@@ -392,7 +392,7 @@ CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
 ```
 ### pg_stat_io
 
-pg_stat_io est une vue système PostgreSQL qui sert à voir les accès disque :
+pg_stat_io est une **vue système PostgreSQL** qui sert à voir les accès disque :
 * lectures
 * écritures
 * cache vs disque
@@ -438,6 +438,58 @@ Exemples :
 `reads` → **COMBIEN DE LECTURES DISQUE ?**
 
 `writes` → **COMBIEN D’ÉCRITURES DISQUE ?**
+
+### auto_explain
+
+auto_explain est une **extension PostgreSQL** qui sert à enregistrer automatiquement le plan d’exécution des requêtes lentes, sans que tu écrives **EXPLAIN ANALYZE** toi-même.
+
+**EXPLAIN :** PostgreSQL te dit ce qu’il prévoit de faire avant d’exécuter la requête.
+```sql
+EXPLAIN SELECT * FROM ordres WHERE statut = 'OPEN';
+```
+👉 Plan théorique, pas réel.
+
+**EXPLAIN ANALYZE :** PostgreSQL exécute réellement la requête, puis montre ce qu’il a vraiment fait
+```sql
+EXPLAIN ANALYZE SELECT * FROM ordres WHERE statut = 'OPEN';
+```
+Il permet de :
+* comprendre pourquoi une requête est lente
+* voir si PostgreSQL utilise :
+    * Seq Scan (PostgreSQL lit toute la table ligne par ligne)
+    * Index Scan (PostgreSQL passe par un index pour aller directement aux lignes utiles)
+    * des Hash Join (PostgreSQL crée une table de hachage en mémoire pour joindre deux tables → Génère des temp files)
+* détecter :
+    * index manquants
+    * mauvaises estimations du planner
+    * problèmes de work_mem
+👉 Les résultats sont écrits dans les logs PostgreSQL.
+
+#### Comment l’activer (pas à pas)
+
+**1 Modifier postgresql.conf**
+
+shared_preload_libraries = 'pg_stat_statements,auto_explain'
+
+**2 Redémarrer PostgreSQL**
+
+**3 Créer l’extension dans la base**
+```sql
+CREATE EXTENSION auto_explain;
+```
+**4 Configurer les paramètres clés**
+(ou dans `postgresql.conf`)
+```sql
+-- Log uniquement les requêtes lentes
+SET auto_explain.log_min_duration = '500ms';
+
+-- Activer l'analyse réelle (EXPLAIN ANALYZE)
+SET auto_explain.log_analyze = on;
+```
+**5 Exécuter normalement les requêtes**
+```sql
+SELECT * FROM ordres WHERE statut = 'OPEN';
+```
 
 
 
