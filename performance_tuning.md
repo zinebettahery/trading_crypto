@@ -390,6 +390,55 @@ shared_preload_libraries = 'pg_stat_statements'
 ```sql
 CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
 ```
+### pg_stat_io
+
+pg_stat_io est une vue système PostgreSQL qui sert à voir les accès disque :
+* lectures
+* écritures
+* cache vs disque
+```sql
+SELECT 
+    backend_type,
+    object,
+    context,
+    reads,
+    writes
+FROM pg_stat_io
+ORDER BY reads DESC
+LIMIT 10;
+```
+`backend_type` → **QUI fait l’I/O ?**
+Exemples :
+* client backend → une requête SQL utilisateur
+* autovacuum worker → nettoyage automatique
+* checkpointer → checkpoint
+* bgwriter → writer arrière-plan
+
+`object` → **SUR QUOI ?**
+Exemples :
+* table → lecture table (ordres, trades)
+* index → lecture index
+* toast → données volumineuses
+* temp → fichiers temporaires ⚠️
+* wal → journal de transactions
+
+👉 beaucoup de table reads = index manquants
+
+👉 beaucoup de temp = requêtes mal optimisées ou work_mem trop bas
+
+`context` → **POURQUOI ?**
+Exemples :
+* normal → requêtes normales
+* vacuum → nettoyage
+* checkpoint → flush disque
+* bgwriter → écriture automatique
+
+👉 vacuum très actif = fillfactor ou partitionnement à revoir
+
+`reads` → **COMBIEN DE LECTURES DISQUE ?**
+
+`writes` → **COMBIEN D’ÉCRITURES DISQUE ?**
+
 
 
 ---
