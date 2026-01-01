@@ -277,51 +277,6 @@ Pour remplir la table `detection_anomalie`, on peut détecter:
 * PUMP AND DUMP : Hausse artificielle rapide puis vente massive.
 * FRONT RUNNING : Un utilisateur trade juste avant un gros ordre.
 
-
-## 📸 Vues et vues matérialisées
-
-### Vues simples
-- Simplification des requêtes métier
-- Centralisation de la logique SQL
-
-### Vues matérialisées
-- Pré-calcul des indicateurs (VWAP, RSI, volatilité)
-- Réduction drastique du temps de réponse
-
-Stratégie :
-- Refresh périodique
-- Rafraîchissement incrémental lorsque possible
-
----
-
-## 🧠 Extended Statistics
-
-Mise en place de statistiques multicolonnes sur :
-- (paire_id, date_creation)
-- (utilisateur_id, statut)
-
-Objectif :
-- Améliorer les estimations du planner
-- Réduire les mauvais plans d’exécution
-
----
-
-## 🔒 Gestion de la concurrence
-
-### Advisory Locks
-Utilisés pour :
-- Sécuriser les mises à jour de portefeuilles
-- Éviter les deadlocks lors d’ordres simultanés
-
----
-
-### Isolation SERIALIZABLE
-Utilisée pour :
-- Garantir la cohérence des soldes
-- Simuler un comportement transactionnel strict
-
----
-
 ## 🧠 Mémoire et stockage
 
 ### work_mem
@@ -349,7 +304,7 @@ Quand work_mem est trop petit :
 ```sql
 SET work_mem = '64MB';
 ```
-ou globalement dans postgresql.conf.
+ou globalement dans "C:/Program Files/PostgreSQL/17/data/postgresql.conf".
 
 ---
 
@@ -400,6 +355,42 @@ Plus de travail pour VACUUM :
 ```sql
 ALTER TABLE ordres SET (fillfactor = 70);
 ```
+
+---
+
+## 🔍 Monitoring
+
+### pg_stat_statements
+
+pg_stat_statements est une extension PostgreSQL qui permet de savoir:
+* quelles requêtes sont les plus lentes
+* lesquelles s’exécutent le plus souvent
+* lesquelles consomment le plus de CPU
+
+```sql
+SELECT query, calls, total_exec_time
+FROM pg_stat_statements
+ORDER BY total_exec_time DESC;
+```
+👉 Tu sais quoi optimiser en priorité
+#### Comment l’activer (pas à pas)
+**1 Trouver le fichier postgresql.conf**
+
+```sql
+SHOW config_file;
+```
+**2 Modifier postgresql.conf**
+Ajouter ou modifier cette ligne : 
+
+shared_preload_libraries = 'pg_stat_statements'
+
+**3 Redémarrer PostgreSQL**
+
+**4 Créer l’extension dans la base**
+```sql
+CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+```
+
 
 ---
 
