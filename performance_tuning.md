@@ -495,12 +495,26 @@ SELECT * FROM ordres WHERE statut = 'OPEN';
 
 ---
 
-## 🧪 Validation des optimisations
+## 🧪 Tests et validation des optimisations
 
-- Comparaison des temps d’exécution avant / après
-- Analyse via EXPLAIN ANALYZE
-- Tests de charge avec insertions massives
-- Mesure de la latence et du TPS
+- **Latence :** Le temps que met une requête pour répondre.
+- **TPS (Transactions Per Second)** : Combien de transactions (INSERT, UPDATE, DELETE…) la base peut gérer par seconde.
+- **Deadlocks :** Situation où deux transactions accumulent des verrous dans un ordre différent. **N.B:** Dans PostgreSQL, les verrous de lignes sont conservés jusqu’à la fin de la transaction à COMMIT ou ROLLBACK pour garantir l’isolation.
+Imagine ceci si A ne garde pas le verrou sur la ligne modifié:
+    * A met id=1 à 110
+    * PostgreSQL libère le verrou
+    * B lit 110
+    * A échoue ensuite et fait ROLLBACK
+👉 B a vu une donnée qui n’existera jamais (incohérence totale) 
+- **Advisory Locks :** verrous manuels, optionnels, contrôlés par l’application, et pas automatiquement imposés par PostgreSQL
+    * Verrou classique: “PostgreSQL bloque techniquement l’accès à la donnée”
+    * Advisory lock : “On s’est mis d’accord qu’un seul processus peut exécuter cette opération à la fois.”
+  
+    exemple: Un seul job peut analyser cette paire de trading à la fois, les autres attendent
+- **SERIALIZABLE :** PostgreSQL fait comme si les transactions s’exécutaient une par une, même si en réalité elles s’exécutent en parallèle.
+```sql
+BEGIN TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+```
 
 ---
 
